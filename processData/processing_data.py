@@ -128,4 +128,3 @@ class Preprocessing :
         self.X_train, self.X_test = self.normalize_data(self.X_train, self.X_test)
         return self.X_train, self.y_train, self.X_test, self.y_test, self.user_train, self.user_test
     
-
