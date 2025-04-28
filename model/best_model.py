@@ -3,9 +3,7 @@ import pandas as pd
 import os
 
 from sklearn.model_selection import GroupKFold
-from sklearn.metrics import classification_report, accuracy_score, log_loss
-from sklearn.metrics import confusion_matrix
-from sklearn.metrics import f1_score
+from sklearn.metrics import accuracy_score, confusion_matrix, f1_score, precision_score, recall_score
 
 from sklearn.discriminant_analysis import LinearDiscriminantAnalysis as LDA
 from sklearn.ensemble import RandomForestClassifier as RF
@@ -104,13 +102,20 @@ def train_model(X_train, y_train, X_test, y_test, user_train, path, feature_remo
 
         # Đánh giá mô hình trên tập kiểm tra
         acc = accuracy_score(y_test, y_pred)
-        
+        f1 = f1_score(y_test, y_pred, average='weighted')
+        precision = precision_score(y_test, y_pred, average='weighted')
+        recall = recall_score(y_test, y_pred, average='weighted')
+        cm = confusion_matrix(y_test, y_pred).tolist()  
 
         if not os.path.isfile(f'{path}{index_name}_results_model.csv'):
         # Tạo một DataFrame trống (nếu file cần chứa dữ liệu dạng bảng)
             df = pd.DataFrame({
                 "model": model,
                 "accuracy": f"{acc}",
+                "f1_score": f"{f1}",
+                "precision": f"{precision}",
+                "recall": f"{recall}",
+                "confusion_matrix": [cm],
                 "features_remove": [feature_remove],
                 "y_probs": [y_prob.tolist()]
             })
@@ -121,6 +126,10 @@ def train_model(X_train, y_train, X_test, y_test, user_train, path, feature_remo
             df_to_append = pd.DataFrame({
                 "model": model,
                 "accuracy": f"{acc}",
+                "f1_score": f"{f1}",
+                "precision": f"{precision}",
+                "recall": f"{recall}",
+                "confusion_matrix": [cm],
                 "features_remove": [feature_remove],
                 "y_probs": [y_prob.tolist()]
             })
@@ -129,6 +138,10 @@ def train_model(X_train, y_train, X_test, y_test, user_train, path, feature_remo
             df_to_append = pd.DataFrame({
             "model": model,
             "accuracy": f"{acc}",
+            "f1_score": f"{f1}",
+            "precision": f"{precision}",
+            "recall": f"{recall}",
+            "confusion_matrix": [cm],
             "features_remove": [feature_remove],
             "y_probs": [y_prob.tolist()]
             }, columns=df_existing.columns)

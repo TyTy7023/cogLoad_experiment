@@ -93,6 +93,10 @@ class Feature_Selection:
             REMAIN = []
             ACC = []
             Y_PROBS = []
+            F1 = []
+            PRECISION = []
+            RECALL = []
+            CONFUSION_MATRIX = []
 
             X_train_cp = raw_train.copy(deep=True)
             X_test_cp = raw_test.copy(deep=True)
@@ -130,13 +134,19 @@ class Feature_Selection:
                 
                 df = pd.read_csv(directory_name + f'{i}_results_model.csv')
                 max_number = df['accuracy'].max()
-                name_max_number = df.loc[df['accuracy'].idxmax(), ['features_remove', 'y_probs']]
+                name_max_number = df.loc[df['accuracy'].idxmax(), ['features_remove', 'y_probs', 'f1_score', 'precision', 'recall', 'confusion_matrix']]
 
                 REMAIN.append(X_train.columns)
                 ACC.append(max_number) 
                 Y_PROBS.append(name_max_number['y_probs'])
+                F1.append(name_max_number['f1_score'])
+                PRECISION.append(name_max_number['precision'])
+                RECALL.append(name_max_number['recall'])
+                CONFUSION_MATRIX.append(name_max_number['confusion_matrix'])
 
-                test_accuracies.append((X_train.columns, max_number, name_max_number['y_probs'])) 
+                test_accuracies.append((X_train.columns, max_number, name_max_number['y_probs'],
+                                        name_max_number['f1_score'], name_max_number['precision'], 
+                                        name_max_number['recall'], name_max_number['confusion_matrix'])) 
                 
             else:
                 while(i<loop):
@@ -158,7 +168,7 @@ class Feature_Selection:
                             
                     df = pd.read_csv(directory_name + f'{i}_results_model.csv')
                     max_number = df['accuracy'].max()
-                    name_max_number = df.loc[df['accuracy'].idxmax(), ['features_remove', 'y_probs']]
+                    name_max_number = df.loc[df['accuracy'].idxmax(), ['features_remove', 'y_probs', 'f1_score', 'precision', 'recall', 'confusion_matrix']]
                 
                     X_train = X_train.drop(columns=[name_max_number['features_remove']])
                     X_test = X_test.drop(columns=[name_max_number['features_remove']])
@@ -167,17 +177,25 @@ class Feature_Selection:
                     REMAIN.append(X_train.columns)
                     ACC.append(max_number) 
                     Y_PROBS.append(name_max_number['y_probs'])
+                    F1.append(name_max_number['f1_score'])
+                    PRECISION.append(name_max_number['precision'])
+                    RECALL.append(name_max_number['recall'])
+                    CONFUSION_MATRIX.append(name_max_number['confusion_matrix'])
 
-                    test_accuracies.append((X_train.columns, max_number, name_max_number['y_probs'])) 
+                    test_accuracies.append((X_train.columns, max_number, name_max_number['y_probs'], 
+                                            name_max_number['f1_score'], name_max_number['precision'], 
+                                            name_max_number['recall'], name_max_number['confusion_matrix'])) 
                     
                     features = X_train.columns.tolist() 
                     i += 1
 
-            df = pd.DataFrame({'features': REMAIN, 'accuracy': ACC, 'y_probs': Y_PROBS})
+            df = pd.DataFrame({'features': REMAIN, 'accuracy': ACC, 'y_probs': Y_PROBS,
+                                'f1_score': F1, 'precision': PRECISION, 'recall': RECALL, 
+                                'confusion_matrix': CONFUSION_MATRIX})
             df.to_csv(f'/kaggle/working/log/remove/result/{model}.csv', index=False)
             
-            feature_counts = [len(features) for features, _, _ in test_accuracies]
-            accuracies = [accuracy for _, accuracy, _ in test_accuracies]
+            feature_counts = [len(features) for features, _, _, _, _, _, _ in test_accuracies]
+            accuracies = [accuracy for _, accuracy, _, _, _, _, _ in test_accuracies]
             
             plt.figure(figsize=(8, 5))
             plt.plot(feature_counts, accuracies, marker='o')
@@ -188,7 +206,7 @@ class Feature_Selection:
             plt.savefig(f'/kaggle/working/log/remove/result/{model}_acc.png')
             plt.show()
             
-            best_column, max_accuracy, y_prob = max(test_accuracies, key=lambda x: x[1])
+            best_column, max_accuracy, y_prob, f1, precision, recall, cm = max(test_accuracies, key=lambda x: x[1])
 
             df_existing = pd.read_csv('/kaggle/working/log/remove/result/result.csv')
             if df_existing.empty: 
@@ -197,6 +215,10 @@ class Feature_Selection:
                     'Best Column': [best_column],
                     'Shape': len(best_column),
                     'Accuracy': max_accuracy,
+                    'F1 Score': f1,
+                    'Precision': precision,
+                    'Recall': recall,
+                    'Confusion Matrix': cm,
                     'Y Probs': [y_prob]
                 })
                 df_to_append.to_csv('/kaggle/working/log/remove/result/result.csv', index=False)
@@ -206,6 +228,10 @@ class Feature_Selection:
                     'Best Column': [best_column],
                     'Shape': len(best_column),
                     'Accuracy': max_accuracy,
+                    'F1 Score': f1,
+                    'Precision': precision,
+                    'Recall': recall,
+                    'Confusion Matrix': cm,
                     'Y Probs': [y_prob]
                 }, columns=df_existing.columns)
             # Ghi thêm vào file CSV
