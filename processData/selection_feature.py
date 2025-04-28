@@ -68,6 +68,7 @@ class Feature_Selection:
         directory_name = '/kaggle/working/log/remove'
         if not os.path.exists(directory_name):
             os.makedirs(directory_name)
+            os.makedirs(directory_name + '/result')
         result = pd.DataFrame({
             'Model': [],
             'Best Column': [],
